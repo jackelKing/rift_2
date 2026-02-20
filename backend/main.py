@@ -6,6 +6,8 @@ from engine import ForensicsEngine
 from schemas import ForensicsResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+app = FastAPI(title="RIFT 2026 Money Muling Engine")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -15,7 +17,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app = FastAPI(title="RIFT 2026 Money Muling Engine")
+
 
 # Enable CORS for Frontend Team
 app.add_middleware(
