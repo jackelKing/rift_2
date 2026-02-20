@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@900&display=swap');
+
+.intro-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 0.5s ease;
+}
+
+.intro-wrapper.intro-fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Deep dark background with subtle radial */
+.intro-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #05080f 0%, #000000 100%);
+}
+
+/* Scanlines overlay */
+.intro-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Horizontal beam that sweeps across */
+.intro-beam {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scaleX(0);
+  width: 100vw;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(91, 140, 255, 0.3) 20%,
+    rgba(91, 140, 255, 1) 50%,
+    rgba(159, 127, 255, 1) 60%,
+    rgba(159, 127, 255, 0.3) 80%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 20px rgba(91, 140, 255, 0.8),
+    0 0 60px rgba(91, 140, 255, 0.4),
+    0 0 120px rgba(91, 140, 255, 0.2);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 3;
+}
+
+.intro-beam.intro-beam-active {
+  transform: translate(-50%, -50%) scaleX(1);
+}
+
+/* Logo */
+.intro-logo {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: baseline;
+  gap: 0px;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 0.05em;
+}
+
+.intro-logo.intro-logo-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.intro-cipher {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: clamp(3rem, 10vw, 7rem);
+  color: #ffffff;
+  text-shadow:
+    0 0 30px rgba(91, 140, 255, 0.6),
+    0 0 60px rgba(91, 140, 255, 0.3);
+  letter-spacing: 0.08em;
+}
+
+.intro-flow {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: clamp(3rem, 10vw, 7rem);
+  background: linear-gradient(90deg, #5b8cff, #9f7fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 0 20px rgba(159, 127, 255, 0.6));
+  letter-spacing: 0.08em;
+}
+
+/* Glow burst that expands */
+.intro-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(91, 140, 255, 0.25) 0%,
+    rgba(159, 127, 255, 0.1) 40%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease;
+  z-index: 1;
+}
+
+.intro-glow.intro-glow-active {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}

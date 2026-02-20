@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Fraud Detection Dashboard</title>
+  <style>
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #050505; color: #fff; overflow: hidden; }
+    #overlay { position: absolute; top: 0; left: 0; width: 350px; height: 100vh; background: rgba(10,10,10,0.95); z-index: 10; padding: 25px; border-right: 1px solid #333; overflow-y: auto; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
+    .card { background: #111; border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    .btn { background: #d32f2f; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; }
+    .btn:hover { background: #ff1744; }
+    h2 { color: #d32f2f; margin-top: 0; border-bottom: 2px solid #d32f2f; padding-bottom: 10px; }
+    h3 { font-size: 16px; margin-bottom: 10px; color: #aaa; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #222; }
+    th { color: #d32f2f; text-transform: uppercase; letter-spacing: 1px; }
+    .stat-val { font-size: 24px; font-weight: bold; color: #fff; }
+    #graph-container { width: 100vw; height: 100vh; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: #333; }
+  </style>
+  <script type="importmap">{ "imports": {
+    "react": "https://esm.sh/react",
+    "react-dom": "https://esm.sh/react-dom/client"
+  }}</script>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="//cdn.jsdelivr.net/npm/@babel/standalone"></script>
+  <script type="text/jsx" data-type="module">
+    import ForceGraph3D from 'https://esm.sh/react-force-graph-3d?external=react';
+    import React, { useState } from 'react';
+    import { createRoot } from 'react-dom';
+
+    const App = () => {
+      const [data, setData] = useState(null);
+      const [loading, setLoading] = useState(false);
+
+      const onFileUpload = async (e) => {
+        setLoading(true);
+        const formData = new FormData();
+        formData.append('file', e.target.files[0]);
+        try {
+          const res = await fetch('http://localhost:8000/analyze', { method: 'POST', body: formData });
+          const result = await res.json();
+          setData(result);
+        } catch (err) {
+          alert("Error connecting to Backend. Ensure main.py is running on port 8000.");
+        }
+        setLoading(false);
+      };
+
+      const downloadJSON = () => {
+        const { graph_data, ...exportJson } = data;
+        const blob = new Blob([JSON.stringify(exportJson, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `fraud_report_${Date.now()}.json`;
+        a.click();
+      };
+
+      // Node Color Logic: Gradient from Green (0) to Dark Red (100)
+      const getNodeColor = (score) => {
+        if (score > 90) return '#4e0000'; // Dark Red (High Muling)
+        if (score > 80) return '#b71c1c'; // Red
+        if (score > 60) return '#e53935'; // Light Red
+        if (score > 40) return '#fb8c00'; // Orange
+        if (score > 20) return '#fdd835'; // Yellow
+        return '#43a047'; // Green (Safe)
+      };
+
+      return (
+        <div>
+          <div id="overlay">
+            <h2>FRAUD CORE</h2>
+            
+            <div className="card">
+              <h3>1. DATA INPUT</h3>
+              <input type="file" accept=".csv" onChange={onFileUpload} style={{color: '#888', fontSize: '12px'}} />
+            </div>
+
+            {data && (
+              <>
+                <div className="card">
+                  <h3>2. NETWORK SUMMARY</h3>
+                  <div style={{display:'flex', justifyContent:'space-between'}}>
+                    <div><div className="stat-val">{data.summary.total_accounts_analyzed}</div><small>TOTAL</small></div>
+                    <div><div className="stat-val" style={{color:'#d32f2f'}}>{data.summary.suspicious_accounts_flagged}</div><small>FLAGGED</small></div>
+                  </div>
+                  <button className="btn" style={{marginTop: '20px'}} onClick={downloadJSON}>EXPORT JSON REPORT</button>
+                </div>
+
+                <div className="card">
+                  <h3>3. DETECTED RINGS</h3>
+                  <table>
+                    <thead><tr><th>RING ID</th><th>TYPE</th><th>SCORE</th></tr></thead>
+                    <tbody>
+                      {data.fraud_rings.map(r => (
+                        <tr key={r.ring_id}>
+                          <td>{r.ring_id}</td>
+                          <td>{r.pattern_type}</td>
+                          <td style={{color: r.risk_score > 80 ? '#ff5252' : '#fff'}}>{r.risk_score}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+            
+            {loading && <div className="stat-val" style={{textAlign:'center', marginTop:'50px'}}>ANALYZING...</div>}
+          </div>
+
+          <div id="graph-container">
+            {data ? (
+              <ForceGraph3D
+                graphData={data.graph_data}
+                nodeColor={n => getNodeColor(n.score)}
+                nodeLabel={n => `
+                  <div style="background: rgba(0,0,0,0.8); padding: 8px; border: 1px solid #555;">
+                    <b style="color:#d32f2f">Account: ${n.id}</b><br/>
+                    Suspicion Score: ${n.score}%
+                  </div>
+                `}
+                nodeVal={n => n.score > 85 ? 12 : 3}
+                nodeOpacity={0.9}
+                linkDirectionalArrowLength={5}
+                linkDirectionalArrowRelPos={1}
+                linkCurvature={0} // FORCED STRAIGHT LINES
+                linkColor={() => '#444'}
+                linkDirectionalParticles={2}
+                linkDirectionalParticleSpeed={0.005}
+              />
+            ) : (
+              <div style={{display:'flex', justifyContent:'center', alignItems:'center', height:'100%', color: '#333'}}>
+                {!loading && <h1>UPLOAD CSV TO GENERATE 3D MAP</h1>}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
