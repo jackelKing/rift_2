@@ -4,7 +4,17 @@ import pandas as pd
 import io
 from engine import ForensicsEngine
 from schemas import ForensicsResponse
+from fastapi.middleware.cors import CORSMiddleware
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://rift-me5t.onrender.com"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app = FastAPI(title="RIFT 2026 Money Muling Engine")
 
 # Enable CORS for Frontend Team
